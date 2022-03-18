@@ -1,3 +1,3 @@
-const init = require('./ether/core');
+const { setEtherWindowArtifacts } = require('./ether/inject');
 
-init();
+setEtherWindowArtifacts();
