@@ -1,5 +1,5 @@
+const { pipe } = require('ramda');
 const getUUID = require('../utils/getUUID');
-const { initWindowEtherProps } = require('./common');
 const { withChangeDetection } = require('./detector');
 const {
   getAttributeValue,
@@ -8,6 +8,7 @@ const {
   selectAll,
 } = require('./dom');
 const { replaceEtherKeysWithValues } = require('./parser');
+const { handleApiRequests } = require('./request');
 
 const [getEtherUpdaterTree, getEtherUpdater, setEtherUpdater] = (() => {
   let updater = {};
@@ -101,8 +102,12 @@ const constructEther = (component) => {
 
 const getShouldUpdateEther = (etherKey) => getEtherUpdater(etherKey);
 
-const handleActions = () => {
-  const actions = window.etherActions;
+const renderEther = (etherKey) => {
+  const ether = getEther(etherKey);
+  ether.update();
+};
+
+const handleActions = (actions) => {
   const actionComponents = selectAllByAttr('on');
   actionComponents.forEach((component) => {
     const [type, actionName, etherKey] = getAttributeValue(component, 'on');
@@ -117,21 +122,25 @@ const handleActions = () => {
   });
 };
 
-const renderEther = (etherKey) => {
-  const ether = getEther(etherKey);
-  ether.update();
+const useUpdateEnhancers = (enhancers, ethers) => {
+  for (const etherKey in ethers) {
+    ethers[etherKey]['update'] = pipe(
+      ...enhancers.map((enhancer) => enhancer.bind(null, etherKey))
+    )(ethers[etherKey]['update'].bind(ethers[etherKey]));
+  }
 };
 
-const init = () => {
+const initializeEtherCore = ({ actions, requests }) => {
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
   clearEtherChildren();
-  handleActions();
+  handleActions(actions);
+  const enhanceUpdateWithRequest = handleApiRequests(requests, getEther);
+  useUpdateEnhancers([enhanceUpdateWithRequest], getEtherTree());
   Object.keys(getEtherTree()).forEach(renderEther);
-  initWindowEtherProps({
-    getEtherTree,
-    getEtherUpdaterTree,
-  });
 };
 
-module.exports = init;
+module.exports = {
+  initializeEtherCore,
+  getEtherTree,
+};
