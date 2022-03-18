@@ -1,5 +1,4 @@
 const getUUID = require('../utils/getUUID');
-const { initWindowEtherProps } = require('./common');
 const { withChangeDetection } = require('./detector');
 const {
   getAttributeValue,
@@ -101,8 +100,7 @@ const constructEther = (component) => {
 
 const getShouldUpdateEther = (etherKey) => getEtherUpdater(etherKey);
 
-const handleActions = () => {
-  const actions = window.etherActions;
+const handleActions = (actions) => {
   const actionComponents = selectAllByAttr('on');
   actionComponents.forEach((component) => {
     const [type, actionName, etherKey] = getAttributeValue(component, 'on');
@@ -122,16 +120,15 @@ const renderEther = (etherKey) => {
   ether.update();
 };
 
-const init = () => {
+const initializeEtherCore = ({ actions }) => {
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
   clearEtherChildren();
-  handleActions();
+  handleActions(actions);
   Object.keys(getEtherTree()).forEach(renderEther);
-  initWindowEtherProps({
-    getEtherTree,
-    getEtherUpdaterTree,
-  });
 };
 
-module.exports = init;
+module.exports = {
+  initializeEtherCore,
+  getEtherTree,
+};
