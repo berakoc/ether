@@ -1,6 +1,7 @@
 const { initWindowEtherProps } = require('./common');
 const { combineWithSameArg } = require('../utils/functions');
 const { getEtherTree, initializeEtherCore } = require('./core');
+const { getRequestTree } = require('./request');
 
 /**
  * @template V, S
@@ -32,16 +33,22 @@ const [getEtherConfig, setEtherConfig] = (() => {
   ];
 })();
 
+const defaultOptions = {
+  cacheSize: 5,
+};
+
 const injectEther = combineWithSameArg(setEtherConfig, initializeEtherCore);
 
 const setEtherWindowArtifacts = () => {
   initWindowEtherProps({
     injectEther,
     getEtherTree: () => Object.assign({}, getEtherTree()),
+    getRequestTree: () => Object.assign({}, getRequestTree()),
   });
 };
 
 module.exports = {
   getEtherConfig,
   setEtherWindowArtifacts,
+  defaultOptions,
 };

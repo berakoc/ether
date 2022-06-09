@@ -1,3 +1,5 @@
+const { merge } = require('lodash');
+const { pipe } = require('ramda');
 const getUUID = require('../utils/getUUID');
 const { withChangeDetection } = require('./detector');
 const {
@@ -6,7 +8,9 @@ const {
   selectAllByAttr,
   selectAll,
 } = require('./dom');
+const { defaultOptions } = require('./inject');
 const { replaceEtherKeysWithValues } = require('./parser');
+const { handleApiRequests } = require('./request');
 
 const [getEtherUpdaterTree, getEtherUpdater, setEtherUpdater] = (() => {
   let updater = {};
@@ -100,6 +104,11 @@ const constructEther = (component) => {
 
 const getShouldUpdateEther = (etherKey) => getEtherUpdater(etherKey);
 
+const renderEther = (etherKey) => {
+  const ether = getEther(etherKey);
+  ether.update();
+};
+
 const handleActions = (actions) => {
   const actionComponents = selectAllByAttr('on');
   actionComponents.forEach((component) => {
@@ -115,16 +124,26 @@ const handleActions = (actions) => {
   });
 };
 
-const renderEther = (etherKey) => {
-  const ether = getEther(etherKey);
-  ether.update();
+const useUpdateEnhancers = (enhancers, ethers) => {
+  for (const etherKey in ethers) {
+    ethers[etherKey]['update'] = pipe(
+      ...enhancers.map((enhancer) => enhancer.bind(null, etherKey))
+    )(ethers[etherKey]['update'].bind(ethers[etherKey]));
+  }
 };
 
-const initializeEtherCore = ({ actions }) => {
+const initializeEtherCore = ({ actions, requests, options }) => {
+  const enhancedOptions = merge(defaultOptions, options);
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
   clearEtherChildren();
   handleActions(actions);
+  const enhanceUpdateWithRequest = handleApiRequests(
+    requests,
+    getEther,
+    enhancedOptions
+  );
+  useUpdateEnhancers([enhanceUpdateWithRequest], getEtherTree());
   Object.keys(getEtherTree()).forEach(renderEther);
 };
 
