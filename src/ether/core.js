@@ -1,3 +1,4 @@
+const { merge } = require('lodash');
 const { pipe } = require('ramda');
 const getUUID = require('../utils/getUUID');
 const { withChangeDetection } = require('./detector');
@@ -7,6 +8,7 @@ const {
   selectAllByAttr,
   selectAll,
 } = require('./dom');
+const { defaultOptions } = require('./inject');
 const { replaceEtherKeysWithValues } = require('./parser');
 const { handleApiRequests } = require('./request');
 
@@ -130,12 +132,17 @@ const useUpdateEnhancers = (enhancers, ethers) => {
   }
 };
 
-const initializeEtherCore = ({ actions, requests }) => {
+const initializeEtherCore = ({ actions, requests, options }) => {
+  const enhancedOptions = merge(defaultOptions, options);
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
   clearEtherChildren();
   handleActions(actions);
-  const enhanceUpdateWithRequest = handleApiRequests(requests, getEther);
+  const enhanceUpdateWithRequest = handleApiRequests(
+    requests,
+    getEther,
+    enhancedOptions
+  );
   useUpdateEnhancers([enhanceUpdateWithRequest], getEtherTree());
   Object.keys(getEtherTree()).forEach(renderEther);
 };

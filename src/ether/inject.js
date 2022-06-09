@@ -33,6 +33,10 @@ const [getEtherConfig, setEtherConfig] = (() => {
   ];
 })();
 
+const defaultOptions = {
+  cacheSize: 5,
+};
+
 const injectEther = combineWithSameArg(setEtherConfig, initializeEtherCore);
 
 const setEtherWindowArtifacts = () => {
@@ -46,4 +50,5 @@ const setEtherWindowArtifacts = () => {
 module.exports = {
   getEtherConfig,
   setEtherWindowArtifacts,
+  defaultOptions,
 };
