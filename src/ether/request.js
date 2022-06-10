@@ -79,7 +79,14 @@ const renderRequestComponent = (
           options.dataMethods,
           dataMethod,
           identity
-        )(get(response, propPath.split('.').filter(Boolean)), component)
+        )(get(response, propPath.split('.').filter(Boolean)), {
+          component,
+          S(styleObject) {
+            Object.keys(styleObject).forEach((styleKey) => {
+              component.style[styleKey] = styleObject[styleKey];
+            });
+          },
+        })
     );
   });
 };
