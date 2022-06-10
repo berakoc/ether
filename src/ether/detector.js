@@ -1,3 +1,4 @@
+const { isEqual } = require('lodash');
 const R = require('ramda');
 
 const withChangeDetection =
@@ -9,7 +10,7 @@ const withChangeDetection =
       return;
     }
     const previousValue = R.prop('value', state);
-    const shouldUpdate = R.not(R.equals(value, previousValue));
+    const shouldUpdate = R.not(isEqual(value, previousValue));
     if (shouldUpdate) {
       updateValue(key, ether);
     }
