@@ -1,6 +1,7 @@
 const { merge } = require('lodash');
 const { pipe } = require('ramda');
-const getUUID = require('../utils/getUUID');
+const { setComponentIdThenReturn } = require('./common');
+const { inputNodeNames } = require('./constants');
 const { withChangeDetection } = require('./detector');
 const {
   getAttributeValue,
@@ -9,6 +10,7 @@ const {
   selectAll,
 } = require('./dom');
 const { defaultOptions } = require('./inject');
+const { handleInputBindings } = require('./input');
 const { replaceEtherKeysWithValues } = require('./parser');
 const { handleApiRequests } = require('./request');
 
@@ -48,11 +50,7 @@ const getEtherComponents = () => selectAllByAttr('ether');
 const clearEtherComponent = (component) => {
   removeAttributes(component, ['ether', 'init']);
 };
-const setComponentIdThenReturn = (component, idKey) => {
-  const id = getUUID();
-  component.setAttribute(idKey, id);
-  return id;
-};
+
 const getEtherComponentProps = (component) => {
   const etherKey = component.getAttribute('ether');
   const initialValue = getAttributeValue(component, 'init');
@@ -116,8 +114,19 @@ const handleActions = (actions) => {
     component.removeAttribute('on');
     setComponentIdThenReturn(component, 'action-id');
     const [select, update] = buildSelector(etherKey);
-    component.addEventListener(type, () => {
-      actions[actionName](select, update, getEther, setEther);
+    const isInput = inputNodeNames.includes(component.nodeName);
+    component.addEventListener(type, (event) => {
+      if (isInput) {
+        actions[actionName](
+          event.target.value,
+          select,
+          update,
+          getEther,
+          setEther
+        );
+      } else {
+        actions[actionName](select, update, getEther, setEther);
+      }
       const shouldUpdateEther = getShouldUpdateEther(etherKey);
       shouldUpdateEther && renderEther(etherKey);
     });
@@ -137,13 +146,17 @@ const initializeEtherCore = ({ actions, requests, options }) => {
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
   clearEtherChildren();
+  const enhanceUpdateWithInputBindings = handleInputBindings(getEther);
   handleActions(actions);
   const enhanceUpdateWithRequest = handleApiRequests(
     requests,
     getEther,
-    enhancedOptions
+    enhancedOptions.requests
   );
-  useUpdateEnhancers([enhanceUpdateWithRequest], getEtherTree());
+  useUpdateEnhancers(
+    [enhanceUpdateWithInputBindings, enhanceUpdateWithRequest],
+    getEtherTree()
+  );
   Object.keys(getEtherTree()).forEach(renderEther);
 };
 

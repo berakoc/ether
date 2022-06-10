@@ -34,7 +34,9 @@ const [getEtherConfig, setEtherConfig] = (() => {
 })();
 
 const defaultOptions = {
-  cacheSize: 5,
+  requests: {
+    cacheSize: 5,
+  },
 };
 
 const injectEther = combineWithSameArg(setEtherConfig, initializeEtherCore);
