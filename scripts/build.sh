@@ -11,9 +11,9 @@ printf "${LIGHT_GREEN}Source code is formatted\n"
 # printf "${LIGHT_YELLOW}Running tests...\n"
 # npm test
 # printf "${LIGHT_GREEN}Tests are passed successfully\n"
-printf "${LIGHT_YELLOW}Clearing dist folder...\n"
-rm -rf dist/*
-printf "${LIGHT_GREEN}Dist folder is removed\n"
+printf "${LIGHT_YELLOW}Clearing build folder...\n"
+rm -rf build/*
+printf "${LIGHT_GREEN}Build folder is removed\n"
 printf "${LIGHT_YELLOW}Bundling with Webpack...\n"
 npm run build:webpack
 printf "${LIGHT_GREEN}Code is bundled\n"
@@ -23,6 +23,6 @@ printf "${LIGHT_GREEN}Code is bundled\n"
 # rm src/bundle.js
 # printf "${LIGHT_GREEN}Source code is transpiled\n"
 printf "${LIGHT_YELLOW}Minifying the transpiled code\n"
-uglifyjs dist/index.js -o dist/index.min.js --compress --mangle
+uglifyjs build/index.js -o build/index.min.js --compress --mangle
 printf "${LIGHT_GREEN}Minification is completed\n"
 printf "${LIGHT_BLUE}Build is ready\n"

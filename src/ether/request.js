@@ -1,10 +1,18 @@
-const { get, isUndefined, isString, isNil, isEqual } = require('lodash');
+const {
+  get,
+  isUndefined,
+  isString,
+  isNil,
+  isEqual,
+  identity,
+} = require('lodash');
 const getUUID = require('../utils/getUUID');
 const { createState } = require('../utils/state');
 const {
   selectAllByAttr,
   getAttributeValueList,
   removeAttributes,
+  getAttributeValue,
 } = require('./dom');
 
 const [getRequestTree, setRequestTree] = createState();
@@ -43,6 +51,7 @@ const renderRequestComponent = (
     components,
     alias,
     requestConfig,
+    dataMethods,
     updateCache,
     isCachedResponse: false,
   },
@@ -61,9 +70,15 @@ const renderRequestComponent = (
       });
     }
     const componentContent = getTemplateMap(templateKey);
+    const dataMethod = component.getAttribute('data-method');
     component.innerHTML = componentContent.replace(
       new RegExp(`\\@${options.alias}(.[a-zA-Z]+)`, 'g'),
-      (_, propPath) => get(response, propPath.split('.').filter(Boolean))
+      (_, propPath) =>
+        get(
+          options.dataMethods,
+          dataMethod,
+          identity
+        )(get(response, propPath.split('.').filter(Boolean)))
     );
   });
 };
@@ -76,6 +91,7 @@ const getResponseFromCache = (cache, requestConfig) =>
 const renderRequestByFetchId = (
   requests,
   getEther,
+  dataMethods,
   options = {
     shouldUpdateQuery: false,
     etherKey: '',
@@ -123,6 +139,7 @@ const renderRequestByFetchId = (
         components,
         alias,
         requestConfig,
+        dataMethods,
         updateCache: (requestConfig, response) =>
           updateRequestTree(
             'cache',
@@ -179,13 +196,18 @@ const initRequestTree = (requestComponents) =>
     });
   });
 
-const handleApiRequests = (requests, getEther, enhancedOptions) => {
+const handleApiRequests = (
+  requests,
+  getEther,
+  enhancedOptions,
+  dataMethods
+) => {
   const requestComponents = selectAllByAttr('fetch');
   initRequestTree(requestComponents);
-  renderRequestByFetchId(requests, getEther);
+  renderRequestByFetchId(requests, getEther, dataMethods);
 
   const enhanceUpdateWithRequest = (etherKey, updateFunction) => () => {
-    renderRequestByFetchId(requests, getEther, {
+    renderRequestByFetchId(requests, getEther, dataMethods, {
       shouldUpdateQuery: true,
       etherKey,
       ...enhancedOptions,

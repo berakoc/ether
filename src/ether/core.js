@@ -141,7 +141,7 @@ const useUpdateEnhancers = (enhancers, ethers) => {
   }
 };
 
-const initializeEtherCore = ({ actions, requests, options }) => {
+const initializeEtherCore = ({ actions, requests, options, dataMethods }) => {
   const enhancedOptions = merge(defaultOptions, options);
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
@@ -151,7 +151,8 @@ const initializeEtherCore = ({ actions, requests, options }) => {
   const enhanceUpdateWithRequest = handleApiRequests(
     requests,
     getEther,
-    enhancedOptions.requests
+    enhancedOptions.requests,
+    dataMethods
   );
   useUpdateEnhancers(
     [enhanceUpdateWithInputBindings, enhanceUpdateWithRequest],
