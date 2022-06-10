@@ -5,6 +5,7 @@ const {
   isNil,
   isEqual,
   identity,
+  first,
 } = require('lodash');
 const getUUID = require('../utils/getUUID');
 const { createState } = require('../utils/state');
@@ -78,7 +79,7 @@ const renderRequestComponent = (
           options.dataMethods,
           dataMethod,
           identity
-        )(get(response, propPath.split('.').filter(Boolean)))
+        )(get(response, propPath.split('.').filter(Boolean)), component)
     );
   });
 };
