@@ -1,6 +1,7 @@
 const { merge } = require('lodash');
 const { pipe } = require('ramda');
 const { setComponentIdThenReturn } = require('./common');
+const renderCompounds = require('./compound');
 const { inputNodeNames } = require('./constants');
 const { withChangeDetection } = require('./detector');
 const {
@@ -56,10 +57,14 @@ const getEtherComponentProps = (component) => {
   const initialValue = getAttributeValue(component, 'init');
   return [etherKey, initialValue];
 };
+
 const clearEtherChildren = () => {
   const removeInject = (child) => removeAttributes(child, ['inject']);
   selectAllByAttr('inject').forEach(removeInject);
 };
+
+const getProcessedEtherChildren = () => selectAllByAttr('inject-id');
+
 const getEtherChildren = (component, etherKey) => {
   const childrenNodes = selectAll(`[inject*="${etherKey}"]`, component);
   const children = Array.from(childrenNodes).map((child) => {
@@ -69,14 +74,17 @@ const getEtherChildren = (component, etherKey) => {
     const initialRenderTemplate = child.innerHTML;
     const render = () => {
       // TODO Add a signal for handling only in need of update for multiple intervened states
-      child.innerHTML = replaceEtherKeysWithValues(
+      const renderedTemplateWithEtherAtoms = replaceEtherKeysWithValues(
         initialRenderTemplate,
         getEtherValue
       );
+      child.innerHTML = renderedTemplateWithEtherAtoms;
+      return renderedTemplateWithEtherAtoms;
     };
     return {
       injectId,
       render,
+      node: child,
     };
   });
 
@@ -141,10 +149,17 @@ const useUpdateEnhancers = (enhancers, ethers) => {
   }
 };
 
-const initializeEtherCore = ({ actions, requests, options, dataMethods }) => {
+const initializeEtherCore = ({
+  actions,
+  requests,
+  options,
+  dataMethods,
+  compounds,
+}) => {
   const enhancedOptions = merge(defaultOptions, options);
   const etherComponents = getEtherComponents();
   etherComponents.forEach(constructEther);
+  renderCompounds(getProcessedEtherChildren(), getEtherTree, compounds);
   clearEtherChildren();
   const enhanceUpdateWithInputBindings = handleInputBindings(getEther);
   handleActions(actions);

@@ -20,6 +20,9 @@ const getDefaultEtherConfig = () => {
   return {
     actions: {},
     requests: {},
+    options: {},
+    dataMethods: {},
+    compounds: {},
   };
 };
 

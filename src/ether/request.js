@@ -177,7 +177,7 @@ const renderRequestByFetchId = (
 
 const initRequestTree = (requestComponents) =>
   requestComponents.forEach((component) => {
-    const attributeNameList = ['fetch', 'alias', 'dep'];
+    const attributeNameList = ['fetch', 'alias', 'deps'];
     const [requestKey, alias, depsArray] = getAttributeValueList(
       component,
       attributeNameList
@@ -186,8 +186,9 @@ const initRequestTree = (requestComponents) =>
     component.setAttribute('fetch-id', getUUID());
     const requestObject = getRequestTree(requestKey);
     const previousDepsArray = requestObject?.dependencyList || [];
+    const parsedDepsArray = JSON.parse(depsArray);
     const currentDepsArray = []
-      .concat(depsArray)
+      .concat(parsedDepsArray)
       .concat(previousDepsArray)
       .filter(isString);
     const previousComponents = requestObject?.components || [];
