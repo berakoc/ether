@@ -50,6 +50,7 @@ const setEtherWindowArtifacts = () => {
     getEtherTree: () => Object.assign({}, getEtherTree()),
     getRequestTree: () => Object.assign({}, getRequestTree()),
   });
+  console.log('%cEther is ready 🎉', 'color: orange; font-style: italic;');
 };
 
 module.exports = {
